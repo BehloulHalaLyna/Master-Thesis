@@ -714,12 +714,12 @@ def hypothesis_testing(df):
 
     # ── H3 ──────────────────────────────────────────────────────────────────
     print("\n  ── H3: The integration of AI tools across Agile phases is associated")
-    print("         with the quality of team decision-making. ──")
-    print("  Measured by: IDX_PHASES (Q24–Q28) × IDX_DECISION (Q29+Q30)")
+    print("         with overall project success. ──")
+    print("  Measured by: IDX_PHASES (Q24–Q28) × Q39 (Overall Project Success)")
     r_h3, p_h3 = spearman_test(
-        'IDX_PHASES', 'IDX_DECISION',
+        'IDX_PHASES', 'Q39_n',
         'H3',
-        "Agile Phase Integration (Q24–Q28) → Decision-making Quality (Q29+Q30)"
+        "Agile Phase Integration (Q24–Q28) → Overall Project Success (Q39)"
     )
 
     # ── H4 ──────────────────────────────────────────────────────────────────
@@ -797,8 +797,8 @@ def hypothesis_testing(df):
         },
         {
             'Hypothesis': 'H3',
-            'Statement': 'Phase integration is associated with decision-making quality',
-            'IV': 'IDX_PHASES', 'DV': 'IDX_DECISION (Q29+Q30)',
+            'Statement': 'Phase integration is associated with overall project success',
+            'IV': 'IDX_PHASES', 'DV': 'Q39_n (Overall Project Success)',
             'ρ': round(r_h3, 3), 'p-value': round(p_h3, 4),
             'Sig.': sig_stars(p_h3), 'Effect': effect_size_r(r_h3),
             'Decision': 'Supported ✓' if p_h3 < .05 else 'Not Supported ✗'
