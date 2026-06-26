@@ -62,8 +62,8 @@ warnings.filterwarnings('ignore')
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
-CSV_PATH   = r"C:/Users/halab/Desktop/memoire/data.csv"
-OUTPUT_DIR = "./figures_en"
+CSV_PATH = os.path.join(os.path.dirname(__file__), "data.csv")
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures_en")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Academic color palette
