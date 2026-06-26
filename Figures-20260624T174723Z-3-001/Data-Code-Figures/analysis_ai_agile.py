@@ -17,7 +17,7 @@ HYPOTHESES:
   H1 — AI adoption level is significantly associated with Agile team performance
   H2 — AI adoption level is significantly associated with deliverable quality
   H3 — AI integration across Agile phases is significantly associated with
-        perceived decision-making quality
+        overall project success
   H4 — AI adoption level is significantly associated with overall project success
 
 ANALYSIS PIPELINE:
@@ -159,9 +159,7 @@ def kmo_bartlett(data: pd.DataFrame):
     """KMO and Bartlett's test of sphericity."""
     X = data.dropna().values
     n, p = X.shape
-    # Correlation matrix
     R = np.corrcoef(X.T)
-    # Partial correlations via inverse
     try:
         R_inv = np.linalg.inv(R)
     except np.linalg.LinAlgError:
@@ -169,11 +167,9 @@ def kmo_bartlett(data: pd.DataFrame):
     D = np.diag(1 / np.sqrt(np.diag(R_inv)))
     P = -D @ R_inv @ D
     np.fill_diagonal(P, 1)
-    # KMO
     r2_sum = (R**2).sum() - np.trace(R**2)
     p2_sum = (P**2).sum() - np.trace(P**2)
     kmo = r2_sum / (r2_sum + p2_sum)
-    # Bartlett
     chi2_stat = -(n - 1 - (2 * p + 5) / 6) * np.log(np.linalg.det(R))
     df_b = p * (p - 1) / 2
     p_val = 1 - stats.chi2.cdf(chi2_stat, df_b)
@@ -190,7 +186,6 @@ def load_data(path):
     print(f"  DATA LOADED: {df.shape[0]} respondents, {df.shape[1]} variables")
     print(f"{'='*70}")
 
-    # ── Numeric encodings ──────────────────────────────────────────────────
     df['Q11_n'] = df[c[11]].map(FREQ_5)
     df['Q12_n'] = df[c[12]].map(NB_TOOLS)
     df['Q13_n'] = pd.to_numeric(df[c[13]], errors='coerce')
@@ -213,7 +208,6 @@ def load_data(path):
     df['Q39_n'] = pd.to_numeric(df[c[39]], errors='coerce')
     df['Q7_n']  = df[c[7]].map(MATURITY)
 
-    # ── Composite indices ──────────────────────────────────────────────────
     # Normalize Q12 to 1–5 scale
     q12_norm = (df['Q12_n'] / 7) * 4 + 1
 
@@ -237,11 +231,10 @@ def load_data(path):
     df['IDX_SUCCESS'] = df['Q39_n']
 
     # Perceived Mechanisms (descriptive block)
-    df['IDX_DECISION']  = df[['Q29_n', 'Q30_n']].mean(axis=1)
-    df['IDX_AUTOMATION']= df[['Q31_n', 'Q32_n']].mean(axis=1)
-    df['IDX_COLLAB']    = df[['Q33_n', 'Q34_n']].mean(axis=1)
+    df['IDX_DECISION']   = df[['Q29_n', 'Q30_n']].mean(axis=1)
+    df['IDX_AUTOMATION'] = df[['Q31_n', 'Q32_n']].mean(axis=1)
+    df['IDX_COLLAB']     = df[['Q33_n', 'Q34_n']].mean(axis=1)
 
-    # Missing value report
     key_indices = ['IDX_ADOPTION','IDX_TOOLS','IDX_PHASES',
                    'IDX_PERF','IDX_QUALITY','IDX_SUCCESS',
                    'IDX_DECISION','IDX_AUTOMATION','IDX_COLLAB']
@@ -262,7 +255,6 @@ PROFILE_LABELS = {
     9:  "Team Size (Q9)",     10: "Project Domain (Q10)"
 }
 PROFILE_EN = {
-    # Q1 roles
     'D\u00e9veloppeur': 'Developer',
     'Sp\u00e9cialiste Data / IA': 'Data / AI Specialist',
     'Chef de projet / Project Manager': 'Project Manager',
@@ -272,7 +264,6 @@ PROFILE_EN = {
     'Product Owner': 'Product Owner',
     'Scrum Master': 'Scrum Master',
     'QA / Test': 'QA / Test',
-    # Q5 sectors
     'Finance / Assurance': 'Finance / Insurance',
     'IT / Logiciel': 'IT / Software',
     'Commerce / Retail': 'Retail / Commerce',
@@ -280,35 +271,28 @@ PROFILE_EN = {
     'Conseil / Consulting': 'Consulting',
     'Secteur public': 'Public Sector',
     'T\u00e9l\u00e9com': 'Telecom',
-    # Q6
     'Priv\u00e9e': 'Private', 'Publique': 'Public',
     'Semi-publique': 'Semi-public', 'Non lucratif': 'Non-profit',
-    # Q7
     'Agile limit\u00e9 \u00e0 quelques \u00e9quipes pilotes': 'Pilot teams only',
     'Agile adopt\u00e9 par plusieurs \u00e9quipes': 'Several teams',
     'Agile largement d\u00e9ploy\u00e9 dans l\u2019organisation': 'Company-wide',
     'Agile structur\u00e9 via un cadre \u00e0 grande \u00e9chelle (SAFe, LeSS, etc.)': 'Scaled framework',
-    # Q8
     '\u00cele-de-France': 'Île-de-France',
     '\u00c9quipe distribu\u00e9e / Remote': 'Distributed / Remote',
     'Multi-sites': 'Multi-site', 'Sud': 'South',
     'Ouest': 'West', 'Nord': 'North',
-    # Q9
     '3\u20135 personnes': '3–5 people', '6\u20139 personnes': '6–9 people',
     '10\u201315 personnes': '10–15 people', '16 personnes et +': '16+ people',
-    # Q10
     'Produit Data / IA': 'Data / AI Product',
     'IT interne': 'Internal IT',
     'D\u00e9veloppement produit': 'Product Development',
     'Processus m\u00e9tier': 'Business Process',
     'Infrastructure / Cloud': 'Infrastructure / Cloud',
-    # experience
     '0\u20132 ans': '0–2 yrs', '3\u20135 ans': '3–5 yrs',
     '6\u201310 ans': '6–10 yrs', '11\u201315 ans': '11–15 yrs',
     '16 ans et +': '16+ yrs',
     '0\u20131 an': '0–1 yr', '2\u20133 ans': '2–3 yrs',
     '4\u20136 ans': '4–6 yrs', '7 ans et +': '7+ yrs',
-    # sizes
     '1\u201349 employ\u00e9s': '1–49 employees',
     '50\u2013249 employ\u00e9s': '50–249 employees',
     '250\u2013999 employ\u00e9s': '250–999 employees',
@@ -359,7 +343,6 @@ def descriptive_stats(df):
     print(f"{'='*70}")
 
     constructs = {
-        # Independent variables
         'Q11 — Daily AI usage frequency':         'Q11_n',
         'Q12 — Number of AI tools (rescaled)':    'Q12_n',
         'Q13 — Formalization of AI use':          'Q13_n',
@@ -368,11 +351,9 @@ def descriptive_stats(df):
         'IDX_ADOPTION — AI Adoption Index':       'IDX_ADOPTION',
         'IDX_TOOLS — AI Tool Breadth Index':      'IDX_TOOLS',
         'IDX_PHASES — Agile Phase Integration':   'IDX_PHASES',
-        # Perceived mechanisms
         'IDX_DECISION — Decision-making':         'IDX_DECISION',
         'IDX_AUTOMATION — Automation / time':     'IDX_AUTOMATION',
         'IDX_COLLAB — Collaboration':             'IDX_COLLAB',
-        # Dependent variables
         'Q35 — Sprint delivery performance':      'Q35_n',
         'Q36 — Productivity / velocity':          'Q36_n',
         'Q37 — Defect reduction (reversed)':      'Q37_n',
@@ -404,7 +385,6 @@ def descriptive_stats(df):
 
     desc_df = pd.DataFrame(rows)
 
-    # Figure — descriptive summary for key indices
     fig, axes = plt.subplots(2, 4, figsize=(18, 9))
     fig.suptitle("Descriptive Statistics — Key Constructs", fontsize=13,
                  fontweight='bold')
@@ -605,7 +585,6 @@ def correlation_matrix(df):
     rho_df = pd.DataFrame(rho_m, index=labels, columns=labels)
     p_df   = pd.DataFrame(p_m,   index=labels, columns=labels)
 
-    # Console output
     print(f"\n  Spearman's rho (n={n})  *** p<.001  ** p<.01  * p<.05")
     for i, l1 in enumerate(labels):
         row = f"  {l1:<14}"
@@ -616,7 +595,6 @@ def correlation_matrix(df):
             row += f"  {r:+.2f}{st:<3}"
         print(row)
 
-    # Annotation matrix
     annot = np.empty_like(rho_m, dtype=object)
     for i in range(len(cols)):
         for j in range(len(cols)):
@@ -699,7 +677,6 @@ def hypothesis_testing(df):
         'H2 (Q38)',
         "AI Adoption Index → Technical debt / maintainability (Q38)"
     )
-    # Overall H2 decision
     if p_h2a < .05 and p_h2b < .05:
         h2_decision = "Supported ✓"
     elif p_h2a < .05 or p_h2b < .05:
@@ -735,6 +712,7 @@ def hypothesis_testing(df):
     hyp_df = pd.DataFrame(hyp_results)
 
     # ── Figure — 4 scatter plots, one per hypothesis ─────────────────────
+    # NOTE: H3 scatter now correctly uses IDX_PHASES × Q39_n
     fig, axes = plt.subplots(2, 2, figsize=(14, 11))
     fig.suptitle("Hypothesis Testing — Scatter Plots (Spearman's ρ)",
                  fontsize=13, fontweight='bold')
@@ -744,8 +722,8 @@ def hypothesis_testing(df):
          'H1 — AI Adoption × Team Performance\n(IDX_ADOPTION × IDX_PERF)'),
         ('IDX_ADOPTION', 'Q37_n',
          'H2 — AI Adoption × Defect Reduction\n(IDX_ADOPTION × Q37, reversed)'),
-        ('IDX_PHASES',   'IDX_DECISION',
-         'H3 — Phase Integration × Decision-making\n(IDX_PHASES × IDX_DECISION)'),
+        ('IDX_PHASES',   'Q39_n',
+         'H3 — Phase Integration × Overall Project Success\n(IDX_PHASES × Q39)'),
         ('IDX_ADOPTION', 'Q39_n',
          'H4 — AI Adoption × Overall Project Success\n(IDX_ADOPTION × Q39)'),
     ]
@@ -774,7 +752,7 @@ def hypothesis_testing(df):
     plt.tight_layout()
     save_fig("Fig04_Hypothesis_Scatterplots")
 
-    # ── Summary table — one row per hypothesis ───────────────────────────
+    # ── Summary table ───────────────────────────────────────────────────
     summary_rows = [
         {
             'Hypothesis': 'H1',
@@ -823,7 +801,6 @@ def hypothesis_testing(df):
         print(f"    ρ = {row['ρ']}  p = {row['p-value']}  {row['Sig.']}  "
               f"Effect: {row['Effect']}")
 
-    # Figure — summary table
     fig, ax = plt.subplots(figsize=(18, 5))
     ax.axis('off')
     cols_show = ['Hypothesis', 'Statement', 'IV', 'DV',
@@ -859,7 +836,6 @@ def hypothesis_testing(df):
 # SECTION 8 — GROUP COMPARISONS (Kruskal-Wallis + Dunn post-hoc)
 # ─────────────────────────────────────────────────────────────────────────────
 def dunn_posthoc(groups, group_names):
-    """Manual Dunn's post-hoc test with Bonferroni correction."""
     all_data = np.concatenate(groups)
     all_ranks = stats.rankdata(all_data)
     n_total = len(all_data)
@@ -879,7 +855,7 @@ def dunn_posthoc(groups, group_names):
         se       = np.sqrt((n_total*(n_total+1)/12) * (1/ni + 1/nj))
         z        = abs(ri - rj) / se
         p_raw    = 2 * (1 - stats.norm.cdf(z))
-        p_adj    = min(p_raw * n_pairs, 1.0)  # Bonferroni
+        p_adj    = min(p_raw * n_pairs, 1.0)
         results.append({
             'Group A': group_names[i], 'Group B': group_names[j],
             'Mean Rank A': round(ri, 2), 'Mean Rank B': round(rj, 2),
@@ -897,7 +873,6 @@ def group_comparisons(df, cols):
     fig.suptitle("Group Comparisons — AI Adoption Level × Outcomes",
                  fontsize=12, fontweight='bold')
 
-    # 8.1 — By type of AI usage (Q14)
     print("\n  8.1 — Kruskal-Wallis: Q14 (Type of AI Usage) × Q39 (Success)")
     df['Q14_group'] = df[cols[14]].map({
         'Ponctuel / exp\u00e9rimental (utilisation occasionnelle, non formalis\u00e9e)':
@@ -909,8 +884,7 @@ def group_comparisons(df, cols):
     })
 
     order14   = ['Experimental', 'Regular', 'Institutionalized']
-    groups14  = [df[df['Q14_group'] == g]['Q39_n'].dropna().values
-                 for g in order14]
+    groups14  = [df[df['Q14_group'] == g]['Q39_n'].dropna().values for g in order14]
     groups14  = [g for g in groups14 if len(g) > 0]
     names14   = [o for o, g in zip(order14, groups14) if len(g) > 0]
     h14, p14  = kruskal(*groups14)
@@ -928,7 +902,6 @@ def group_comparisons(df, cols):
             print(f"    {row['Group A']} vs {row['Group B']}: "
                   f"Z={row['Z']:.3f}  p_adj={row['p (adjusted)']:.4f}  {row['Sig.']}")
 
-    # Boxplot
     data_plot = [(g, n) for g, n in zip(groups14, names14)]
     bp = axes[0].boxplot([d[0] for d in data_plot],
                           labels=[d[1] for d in data_plot],
@@ -943,14 +916,11 @@ def group_comparisons(df, cols):
     axes[0].set_ylabel("Overall Project Success (Q39)")
     axes[0].set_ylim(0.5, 5.5)
 
-    # 8.2 — By Agile maturity (Q7)
     print("\n  8.2 — Kruskal-Wallis: Agile Maturity (Q7) × Q39 (Success)")
-    mat_map = {1: 'Pilot', 2: 'Several Teams',
-               3: 'Company-wide', 4: 'Scaled'}
+    mat_map = {1: 'Pilot', 2: 'Several Teams', 3: 'Company-wide', 4: 'Scaled'}
     df['Q7_group'] = df['Q7_n'].map(mat_map)
     order7   = ['Pilot', 'Several Teams', 'Company-wide', 'Scaled']
-    groups7  = [df[df['Q7_group'] == g]['Q39_n'].dropna().values
-                for g in order7]
+    groups7  = [df[df['Q7_group'] == g]['Q39_n'].dropna().values for g in order7]
     groups7  = [g for g in groups7 if len(g) > 0]
     names7   = [o for o, g in zip(order7, groups7) if len(g) > 0]
     h7, p7   = kruskal(*groups7)
@@ -968,11 +938,9 @@ def group_comparisons(df, cols):
             print(f"    {row['Group A']} vs {row['Group B']}: "
                   f"Z={row['Z']:.3f}  p_adj={row['p (adjusted)']:.4f}  {row['Sig.']}")
 
-    bp2 = axes[1].boxplot([g for g in groups7],
-                           labels=names7, patch_artist=True,
+    bp2 = axes[1].boxplot([g for g in groups7], labels=names7, patch_artist=True,
                            medianprops=dict(color='white', linewidth=2))
-    for patch, color in zip(bp2['boxes'],
-                             sns.color_palette("Blues", len(groups7))):
+    for patch, color in zip(bp2['boxes'], sns.color_palette("Blues", len(groups7))):
         patch.set_facecolor(color); patch.set_alpha(0.75)
     axes[1].set_title(f"Agile Maturity (Q7) × Success (Q39)\n"
                       f"H={h7:.2f}  p={p7:.4f}  {sig_stars(p7)}")
@@ -980,14 +948,11 @@ def group_comparisons(df, cols):
     axes[1].set_ylim(0.5, 5.5)
     axes[1].tick_params(axis='x', labelsize=8)
 
-    # 8.3 — By number of tools (Q12)
     print("\n  8.3 — Kruskal-Wallis: Number of Tools (Q12) × Q39 (Success)")
-    nb_map = {0: '0 tools', 1: '1 tool', 2.5: '2–3 tools',
-              4.5: '4–5 tools', 7: '6+ tools'}
+    nb_map = {0: '0 tools', 1: '1 tool', 2.5: '2–3 tools', 4.5: '4–5 tools', 7: '6+ tools'}
     df['Q12_group'] = df['Q12_n'].map(nb_map)
     order12  = ['0 tools', '1 tool', '2–3 tools', '4–5 tools', '6+ tools']
-    groups12 = [df[df['Q12_group'] == g]['Q39_n'].dropna().values
-                for g in order12]
+    groups12 = [df[df['Q12_group'] == g]['Q39_n'].dropna().values for g in order12]
     valid12  = [(g, n) for g, n in zip(groups12, order12) if len(g) > 1]
     if len(valid12) >= 2:
         g12v, n12v = zip(*valid12)
@@ -996,11 +961,9 @@ def group_comparisons(df, cols):
         print(f"    H = {h12:.3f}  p = {p12:.4f}  {sig_stars(p12)}")
         print(f"    η² = {eta2_12:.3f}")
 
-        bp3 = axes[2].boxplot(list(g12v), labels=list(n12v),
-                               patch_artist=True,
+        bp3 = axes[2].boxplot(list(g12v), labels=list(n12v), patch_artist=True,
                                medianprops=dict(color='white', linewidth=2))
-        for patch, color in zip(bp3['boxes'],
-                                 sns.color_palette("Greens", len(g12v))):
+        for patch, color in zip(bp3['boxes'], sns.color_palette("Greens", len(g12v))):
             patch.set_facecolor(color); patch.set_alpha(0.75)
         axes[2].set_title(f"Number of Tools (Q12) × Success (Q39)\n"
                           f"H={h12:.2f}  p={p12:.4f}  {sig_stars(p12)}")
@@ -1031,24 +994,20 @@ def moderation_analysis(df):
 
     for ax, group_label, color in zip(
             axes, ['Low Maturity', 'High Maturity'], [C_SEC, C_MAIN]):
-        sub  = df[df['Q7_binary'] == group_label][
-                   ['IDX_ADOPTION', 'Q39_n']].dropna()
+        sub  = df[df['Q7_binary'] == group_label][['IDX_ADOPTION', 'Q39_n']].dropna()
         r, p = spearmanr(sub['IDX_ADOPTION'], sub['Q39_n'])
         st   = sig_stars(p)
         ax.scatter(sub['IDX_ADOPTION'], sub['Q39_n'],
                    alpha=0.5, color=color, s=55, edgecolors='white')
         z   = np.polyfit(sub['IDX_ADOPTION'], sub['Q39_n'], 1)
-        xln = np.linspace(sub['IDX_ADOPTION'].min(),
-                          sub['IDX_ADOPTION'].max(), 100)
+        xln = np.linspace(sub['IDX_ADOPTION'].min(), sub['IDX_ADOPTION'].max(), 100)
         ax.plot(xln, np.poly1d(z)(xln), color='black', linewidth=2)
-        ax.set_title(f"{group_label} (n={len(sub)})\n"
-                     f"ρ = {r:.3f}  {st}", fontsize=11, fontweight='bold')
+        ax.set_title(f"{group_label} (n={len(sub)})\nρ = {r:.3f}  {st}",
+                     fontsize=11, fontweight='bold')
         ax.set_xlabel("AI Adoption Index", fontsize=10)
         ax.set_ylabel("Overall Project Success (Q39)", fontsize=10)
-        print(f"\n  {group_label}: n={len(sub)}  ρ={r:.3f}  "
-              f"p={p:.4f}  {st}")
+        print(f"\n  {group_label}: n={len(sub)}  ρ={r:.3f}  p={p:.4f}  {st}")
 
-    # Interaction test via difference in correlations (Fisher's z)
     groups = df.groupby('Q7_binary')[['IDX_ADOPTION', 'Q39_n']].apply(
         lambda x: spearmanr(x['IDX_ADOPTION'], x['Q39_n']))
     r_vals = {k: v[0] for k, v in groups.items() if not pd.isna(v[0])}
@@ -1098,14 +1057,12 @@ def regression_analysis(df):
     X_raw  = data[pred_cols].values
     k      = X_raw.shape[1]
 
-    # Standardize predictors
     X_mean = X_raw.mean(axis=0)
     X_std  = X_raw.std(axis=0)
     X_std[X_std == 0] = 1
     X_std_arr = (X_raw - X_mean) / X_std
     X_c   = np.column_stack([np.ones(n_reg), X_std_arr])
 
-    # OLS coefficients
     beta  = np.linalg.lstsq(X_c, Y, rcond=None)[0]
     Y_hat = X_c @ beta
     resid = Y - Y_hat
@@ -1116,22 +1073,18 @@ def regression_analysis(df):
     r2_adj = 1 - (1 - r2) * (n_reg - 1) / (n_reg - k - 1)
     mse    = ss_res / (n_reg - k - 1)
 
-    # Standard errors & t-stats
     XtX_inv = np.linalg.pinv(X_c.T @ X_c)
     se      = np.sqrt(np.diag(XtX_inv * mse))
     t_vals  = beta / se
     p_vals  = [2*(1 - stats.t.cdf(abs(t), df=n_reg-k-1)) for t in t_vals]
 
-    # 95% CI
     t_crit = stats.t.ppf(0.975, df=n_reg-k-1)
     ci_lo  = beta - t_crit * se
     ci_hi  = beta + t_crit * se
 
-    # F-test (ANOVA table)
     f_stat = (ss_reg / k) / (ss_res / (n_reg - k - 1))
     p_f    = 1 - stats.f.cdf(f_stat, k, n_reg - k - 1)
 
-    # VIF
     vif_vals = []
     for j in range(k):
         xj   = X_std_arr[:, j]
@@ -1144,22 +1097,18 @@ def regression_analysis(df):
         r2_j = 1 - ss_r / ss_t if ss_t > 0 else 0
         vif_vals.append(round(1 / (1 - r2_j), 3) if r2_j < 1 else np.inf)
 
-    # Durbin-Watson
     dw = np.sum(np.diff(resid)**2) / ss_res
 
-    # ── ANOVA Table ─────────────────────────────────────────────────────────
     print(f"\n  ANOVA Table")
     print(f"  {'Source':<15} {'SS':>10}  {'df':>5}  {'MS':>10}  {'F':>8}  p-value")
     print(f"  {'-'*60}")
     print(f"  {'Regression':<15} {ss_reg:>10.3f}  {k:>5}  "
           f"{ss_reg/k:>10.3f}  {f_stat:>8.3f}  {p_f:.4f} {sig_stars(p_f)}")
-    print(f"  {'Residual':<15} {ss_res:>10.3f}  {n_reg-k-1:>5}  "
-          f"{mse:>10.3f}")
+    print(f"  {'Residual':<15} {ss_res:>10.3f}  {n_reg-k-1:>5}  {mse:>10.3f}")
     print(f"  {'Total':<15} {ss_tot:>10.3f}  {n_reg-1:>5}")
     print(f"\n  R² = {r2:.3f}   Adjusted R² = {r2_adj:.3f}"
           f"   Durbin-Watson = {dw:.3f}")
 
-    # ── Coefficients Table ───────────────────────────────────────────────────
     all_names = ['(Constant)'] + pred_names
     print(f"\n  Coefficients (standardized predictors)")
     print(f"  {'Predictor':<22} {'β':>8}  {'SE':>7}  {'t':>7}  "
@@ -1184,7 +1133,6 @@ def regression_analysis(df):
     mc_ok = all(v < 5 for v in vif_vals if isinstance(v, float))
     print(f"\n  VIF check: {'No multicollinearity (all VIF < 5) ✓' if mc_ok else 'Multicollinearity detected ✗'}")
 
-    # ── Figures ─────────────────────────────────────────────────────────────
     fig, axes = plt.subplots(1, 3, figsize=(17, 6))
     fig.suptitle(
         f"OLS Regression — Predictors of Overall Project Success (Q39)\n"
@@ -1192,13 +1140,11 @@ def regression_analysis(df):
         f"F({k},{n_reg-k-1}) = {f_stat:.2f}, p = {p_f:.4f}",
         fontsize=11, fontweight='bold')
 
-    # Standardized coefficients
     betas_plot = beta[1:]
     pvals_plot = p_vals[1:]
     clrs = [C_POS if (b>0 and p<.05) else C_NEG if (b<0 and p<.05) else C_NEU
             for b, p in zip(betas_plot, pvals_plot)]
-    axes[0].barh(pred_names, betas_plot, color=clrs,
-                 edgecolor='white', height=0.55)
+    axes[0].barh(pred_names, betas_plot, color=clrs, edgecolor='white', height=0.55)
     axes[0].axvline(0, color='black', linewidth=0.8)
     axes[0].set_xlabel("Standardized β coefficient")
     axes[0].set_title("Regression Coefficients")
@@ -1212,21 +1158,16 @@ def regression_analysis(df):
            mpatches.Patch(color=C_NEU, label='Non-significant')]
     axes[0].legend(handles=leg, fontsize=7)
 
-    # Predicted vs observed
-    axes[1].scatter(Y_hat, Y, alpha=0.45, color=C_MAIN,
-                    s=50, edgecolors='white')
+    axes[1].scatter(Y_hat, Y, alpha=0.45, color=C_MAIN, s=50, edgecolors='white')
     lim = [min(Y_hat.min(), Y.min())-.3, max(Y_hat.max(), Y.max())+.3]
     axes[1].plot(lim, lim, 'k--', linewidth=1.5)
     axes[1].set_xlabel("Predicted (Ŷ)"); axes[1].set_ylabel("Observed (Y)")
     axes[1].set_title(f"Predicted vs Observed\nR² = {r2:.3f}")
-    axes[1].text(0.05, 0.92, f'R² = {r2:.3f}',
-                 transform=axes[1].transAxes, fontsize=10,
-                 fontweight='bold', color=C_MAIN,
+    axes[1].text(0.05, 0.92, f'R² = {r2:.3f}', transform=axes[1].transAxes,
+                 fontsize=10, fontweight='bold', color=C_MAIN,
                  bbox=dict(boxstyle='round', facecolor='white'))
 
-    # Residual plot
-    axes[2].scatter(Y_hat, resid, alpha=0.45, color=C_SEC,
-                    s=50, edgecolors='white')
+    axes[2].scatter(Y_hat, resid, alpha=0.45, color=C_SEC, s=50, edgecolors='white')
     axes[2].axhline(0, color='black', linewidth=1.2, linestyle='--')
     axes[2].set_xlabel("Predicted (Ŷ)")
     axes[2].set_ylabel("Residuals")
@@ -1267,17 +1208,13 @@ def perceived_mechanisms(df):
               f"{s.mean():>6.2f}  {s.std():>6.2f}  "
               f"{ag:>13.1f}%  {di:>16.1f}%")
 
-    # Diverging stacked bar chart
     fig, ax = plt.subplots(figsize=(13, 6))
     labels = list(meca.values())
     cols_q  = list(meca.keys())
 
-    neg = np.array([(df[c] <= 2).sum() / df[c].notna().sum() * 100
-                    for c in cols_q])
-    neu = np.array([(df[c] == 3).sum() / df[c].notna().sum() * 100
-                    for c in cols_q])
-    pos = np.array([(df[c] >= 4).sum() / df[c].notna().sum() * 100
-                    for c in cols_q])
+    neg = np.array([(df[c] <= 2).sum() / df[c].notna().sum() * 100 for c in cols_q])
+    neu = np.array([(df[c] == 3).sum() / df[c].notna().sum() * 100 for c in cols_q])
+    pos = np.array([(df[c] >= 4).sum() / df[c].notna().sum() * 100 for c in cols_q])
     y   = np.arange(len(labels))
 
     ax.barh(y, -neg,          color=C_NEG,  height=0.6, label='Disagree (1–2)')
@@ -1287,10 +1224,8 @@ def perceived_mechanisms(df):
     ax.axvline(0, color='black', linewidth=0.8)
     ax.set_yticks(y); ax.set_yticklabels(labels, fontsize=9)
     ax.set_xlabel("Percentage of respondents (%)")
-    ax.set_title(
-        "Perceived Value Creation Mechanisms (Q29–Q34)\n"
-        "Diverging Likert Distribution",
-        fontsize=12, fontweight='bold')
+    ax.set_title("Perceived Value Creation Mechanisms (Q29–Q34)\nDiverging Likert Distribution",
+                 fontsize=12, fontweight='bold')
     ax.legend(loc='lower right', fontsize=9)
     ax.set_xlim(-65, 65)
     for i, col in enumerate(cols_q):
@@ -1315,7 +1250,6 @@ def content_analysis(df, cols):
     freq  = pd.Series(all_ch).value_counts()
     n_res = df[cols[40]].notna().sum()
 
-    # English labels
     en_labels = {
         'Confidentialit\u00e9 / RGPD': 'Data privacy / GDPR',
         'D\u00e9pendance excessive': 'Over-reliance',
@@ -1343,17 +1277,12 @@ def content_analysis(df, cols):
         "Trust & Governance":
             ['Low trust in AI outputs', 'Governance / lack of policies',
              'Bias / fairness', 'Explainability'],
-        "Privacy & Security":
-            ['Data privacy / GDPR', 'Security concerns'],
-        "Adoption & Resistance":
-            ['Over-reliance', 'Resistance to change'],
-        "Skills & Cost":
-            ['Lack of skills / training', 'Tool cost / licensing'],
-        "Technical Integration":
-            ['Integration difficulties'],
+        "Privacy & Security": ['Data privacy / GDPR', 'Security concerns'],
+        "Adoption & Resistance": ['Over-reliance', 'Resistance to change'],
+        "Skills & Cost": ['Lack of skills / training', 'Tool cost / licensing'],
+        "Technical Integration": ['Integration difficulties'],
     }
-    theme_counts = {t: sum(freq.get(k, 0) for k in ks)
-                    for t, ks in themes.items()}
+    theme_counts = {t: sum(freq.get(k, 0) for k in ks) for t, ks in themes.items()}
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
     fig.suptitle(f"Challenges in AI Integration — Q40 (n={n_res})",
@@ -1374,12 +1303,10 @@ def content_analysis(df, cols):
 
     td = {k: v for k, v in theme_counts.items() if v > 0}
     wdg, _, autotxt = ax2.pie(
-        list(td.values()),
-        labels=None,
+        list(td.values()), labels=None,
         colors=sns.color_palette("Set2", len(td)),
         autopct='%1.1f%%', startangle=140,
-        wedgeprops={'edgecolor': 'white', 'linewidth': 2},
-        pctdistance=0.75)
+        wedgeprops={'edgecolor': 'white', 'linewidth': 2}, pctdistance=0.75)
     centre = plt.Circle((0, 0), 0.5, fc='white')
     ax2.add_patch(centre)
     ax2.set_title("Thematic Grouping")
@@ -1399,7 +1326,6 @@ def adoption_and_tools(df, cols):
     print("  SECTION 13 — AI ADOPTION & TOOL TYPES (answers SQR1 & SQR2)")
     print(f"{'='*70}")
 
-    # Q11 distribution
     fig, axes = plt.subplots(1, 3, figsize=(17, 6))
     fig.suptitle("AI Adoption — Frequency, Tool Types & Agile Phase Integration",
                  fontsize=12, fontweight='bold')
@@ -1416,10 +1342,8 @@ def adoption_and_tools(df, cols):
         axes[0].text(bar.get_x() + bar.get_width()/2, v + .3,
                      f'{v}\n({v}%)', ha='center', fontsize=9, fontweight='bold')
 
-    # Q16–Q23 tool breadth
-    tool_labels = ['Generative AI\n(LLM)', 'Predictive ML',
-                   'Decision\nSupport', 'NLP',
-                   'Code\nGeneration', 'Test / QA',
+    tool_labels = ['Generative AI\n(LLM)', 'Predictive ML', 'Decision\nSupport',
+                   'NLP', 'Code\nGeneration', 'Test / QA',
                    'Analytics\nDashboards', 'Automation\nBots']
     means_t = [df[f'Q{i}_n'].mean() for i in range(16, 24)]
     stds_t  = [df[f'Q{i}_n'].std()  for i in range(16, 24)]
@@ -1429,27 +1353,22 @@ def adoption_and_tools(df, cols):
                  [means_t[i] for i in sorted_i],
                  xerr=[stds_t[i] for i in sorted_i],
                  color=clrs_t, capsize=4, edgecolor='white')
-    axes[1].axvline(3, color='gray', linestyle='--', linewidth=1.2,
-                    alpha=0.7, label='Neutral (3)')
+    axes[1].axvline(3, color='gray', linestyle='--', linewidth=1.2, alpha=0.7, label='Neutral (3)')
     axes[1].set_xlim(0, 5.5)
     axes[1].set_title("Q16–Q23 — Tool Usage Intensity (M ± SD)")
     axes[1].set_xlabel("Mean intensity (1=not used … 5=very heavily used)")
     axes[1].legend(fontsize=8)
     for i, (idx, m) in enumerate(zip(sorted_i, [means_t[j] for j in sorted_i])):
-        axes[1].text(m + .08, i, f'{m:.2f}', va='center',
-                     fontsize=8, fontweight='bold')
+        axes[1].text(m + .08, i, f'{m:.2f}', va='center', fontsize=8, fontweight='bold')
 
-    # Q24–Q28 phase integration
     phase_labels = ['ENVISION', 'SPECULATE', 'EXPLORE', 'ADAPT', 'CLOSE']
     means_p  = [df[f'Q{i}_n'].mean() for i in range(24, 29)]
     stds_p   = [df[f'Q{i}_n'].std()  for i in range(24, 29)]
     clrs_p   = [C_MAIN if m == max(means_p) else
-                C_SEC  if m == min(means_p) else '#5B9BD5'
-                for m in means_p]
+                C_SEC  if m == min(means_p) else '#5B9BD5' for m in means_p]
     bars_p = axes[2].bar(phase_labels, means_p, yerr=stds_p,
                          capsize=5, color=clrs_p, edgecolor='white')
-    axes[2].axhline(3, color='gray', linestyle='--',
-                    linewidth=1.2, alpha=0.7, label='Neutral (3)')
+    axes[2].axhline(3, color='gray', linestyle='--', linewidth=1.2, alpha=0.7, label='Neutral (3)')
     axes[2].set_ylim(0, 5.5)
     axes[2].set_ylabel("Mean frequency (1=Never … 5=Very often)")
     axes[2].set_title("Q24–Q28 — AI Integration by Agile Phase (M ± SD)")
@@ -1472,46 +1391,20 @@ def main():
 
     df, cols = load_data(CSV_PATH)
 
-    # 1. Respondent profile
     freq_profile(df, cols)
-
-    # 2. Descriptive statistics
     desc_df = descriptive_stats(df)
-
-    # 3. Reliability
     rel_df = reliability_analysis(df)
-
-    # 4. Validity (KMO + Bartlett)
     val_df = validity_analysis(df)
-
-    # 5. Normality
     norm_df = normality_analysis(df)
-
-    # 6. Correlation matrix
     rho_df, p_df, n_corr = correlation_matrix(df)
-
-    # 7. Hypothesis testing
     hyp_df = hypothesis_testing(df)
-
-    # 8. Group comparisons
     group_comparisons(df, cols)
-
-    # 9. Moderation
     moderation_analysis(df)
-
-    # 10. Regression
     reg_df, r2, r2_adj, f_stat, p_f = regression_analysis(df)
-
-    # 11. Perceived mechanisms
     perceived_mechanisms(df)
-
-    # 12. Content analysis Q40
     challenges = content_analysis(df, cols)
-
-    # 13. SQR1 & SQR2 descriptive figures
     adoption_and_tools(df, cols)
 
-    # ── Final summary ────────────────────────────────────────────────────────
     print(f"\n{'='*70}")
     print("  ANALYSIS COMPLETE — SUMMARY")
     print(f"{'='*70}")
