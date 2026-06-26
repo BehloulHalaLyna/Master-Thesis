@@ -209,11 +209,11 @@ def load_data(path):
     df['Q7_n']  = df[c[7]].map(MATURITY)
 
     # Normalize Q12 to 1–5 scale
-    q12_norm = (df['Q12_n'] / 7) * 4 + 1
+        # Normalize Q12 to 1–5 scale
+    df['Q12_norm'] = (df['Q12_n'] / 7) * 4 + 1
 
     # IV1 — AI Adoption Index (Q11, Q12_norm, Q13, Q14, Q15)
-    df['IDX_ADOPTION'] = df[['Q11_n', 'Q13_n', 'Q14_n', 'Q15_n']].join(
-        q12_norm.rename('Q12_norm')).mean(axis=1)
+    df['IDX_ADOPTION'] = df[['Q11_n', 'Q12_norm', 'Q13_n', 'Q14_n', 'Q15_n']].mean(axis=1)
 
     # IV2 — AI Tools Index (Q16–Q23)
     df['IDX_TOOLS'] = df[[f'Q{i}_n' for i in range(16, 24)]].mean(axis=1)
@@ -425,8 +425,8 @@ def reliability_analysis(df):
     print(f"{'='*70}")
 
     blocks = {
-        "AI Adoption (Q11,Q13,Q14,Q15)":
-            ['Q11_n','Q13_n','Q14_n','Q15_n'],
+        "AI Adoption (Q11,Q12,Q13,Q14,Q15)":
+            ['Q11_n','Q12_norm','Q13_n','Q14_n','Q15_n'],
         "AI Tool Types (Q16–Q23)":
             [f'Q{i}_n' for i in range(16, 24)],
         "Agile Phase Integration (Q24–Q28)":
