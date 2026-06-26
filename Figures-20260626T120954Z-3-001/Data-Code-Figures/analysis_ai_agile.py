@@ -4,14 +4,6 @@ QUANTITATIVE ANALYSIS — AI Integration in Agile Teams
 M2 Research Thesis — French Organizations (n=100)
 =============================================================================
 
-FRAMEWORK:
-  Independent Variables  : AI Adoption (Q11–Q15), Tool Types (Q16–Q23),
-                           Agile Phase Integration (Q24–Q28)
-  Dependent Variables    : Team Performance (Q35–Q36), Deliverable Quality
-                           (Q37–Q38), Overall Project Success (Q39)
-  Perceived Mechanisms   : Decision-making (Q29–Q30), Automation (Q31–Q32),
-                           Collaboration (Q33–Q34)
-  Moderating Variables   : Agile Maturity (Q7), Org Context (Q1–Q6, Q8–Q10)
 
 HYPOTHESES:
   H1 — AI adoption level is significantly associated with Agile team performance
